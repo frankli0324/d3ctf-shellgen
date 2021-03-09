@@ -1,0 +1,34 @@
+version: "3.5"
+services:
+    proxy:
+        image: frankli0324/d3ctf-shellgen-proxy
+        build: ../proxy
+        environment:
+            - PROXY_PASS=app:5000
+        ports:
+            - 80:80
+        networks:
+            default:
+            no-network:
+
+    app:
+        image: frankli0324/d3ctf-shellgen-misc
+        build: ./app
+        volumes:
+            - /var/run/user/1000/docker.sock:/var/run/docker.sock
+            - ./app:/opt/app:ro
+            - ./app/templates/index.html:/opt/app/templates/index.html:ro
+            - ./app/templates:/opt/app/templates
+            - ./app/workdir:/opt/app/workdir
+        working_dir: /opt/app
+        ports:
+            - 5000:5000
+        environment:
+            - APP_DIR=${PWD}/app
+            - STD_FILE=${PWD}/gen.py
+        networks:
+            no-network:
+
+networks:
+    no-network:
+        internal: true
