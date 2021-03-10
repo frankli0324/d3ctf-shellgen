@@ -1,57 +1,36 @@
-from bisect import bisect
-print('<?php')
 target = input()
-original = target
 
 
-def subsequence(seq, key=None):
-    rank = seq
-    if not rank:
-        return []
-
-    lastoflength = [0]
-    predecessor = [None]
-
-    for i in range(1, len(seq)):
-        j = bisect([rank[k] for k in lastoflength], rank[i])
-        try:
-            lastoflength[j] = i
-        except:
-            lastoflength.append(i)
-        predecessor.append(lastoflength[j - 1] if j > 0 else None)
-
-    def trace(i):
-        if i is not None:
-            yield from trace(predecessor[i])
-            yield i
-    indices = trace(lastoflength[-1])
-
-    return list(indices)
+def get():
+    q = []
+    for c in '09_':
+        q.append(c)
+    while True:
+        base = q.pop(0)
+        yield base
+        for c in '09_':
+            q.append(base + c)
 
 
-lists = []
-while target:
-    M = subsequence(target)
-    res = ''
-    for i in M:
-        res += target[i]
-    lists.append(res)
-    while M:
-        pos = M.pop()
-        target = target[:pos] + target[pos + 1:]
+freq = {}
+gen = get()
 
-varnames = ['$' + '_' * i for i in range(len(lists))]
-state = [0] * len(lists)
-print('$_="";$__=([]."")[3];', end='')
-for i in range(1, len(lists)):
-    print(f'$__{"_" * i}=$__;', end='')
-for c in original:
-    for i in range(0, len(lists)):
-        if len(lists[i]) > state[i] and lists[i][state[i]] == c:
-            lst = lists[i][state[i] - 1] if state[i] else 'a'
-            cnt = ord(lists[i][state[i]]) - ord(lst)
-            print(f'$__{"_" * i}++;' * cnt, end='')
-            print(f'$_.=$__{"_" * i};', end='')
-            state[i] += 1
-            break
+for c in target:
+    freq[c] = freq.get(c, 0) + 1
+freq = list(freq.items())
+freq.sort(key=lambda x: x[1], reverse=True)
+varname = {i: next(gen) for i in range(len(freq))}
+hash_char = {freq[i][0]: varname[i] for i in range(len(freq))}
+
+print('<?php')
+print('$_=[].[];$_=$_[0.9+0.9+0.9+0.9];', end='')
+
+for c in range(ord('a'), ord(max(target)) + 1):
+    if chr(c) in target:
+        print(f'$_{hash_char[chr(c)]}=$_;', end='')
+    print('$_++;', end='')
+
+print(f'$_=$_{hash_char[target[0]]};', end='')
+for c in target[1:]:
+    print(f'$_.=$_{hash_char[c]};', end='')
 print('?><?=$_;')
